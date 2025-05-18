@@ -125,3 +125,22 @@ body {
   animation: fadeIn 0.6s ease-out 0.4s forwards;
   opacity: 0;
 }
+
+@layer base {
+  :root {
+    --selection-color: #f5f1e6;
+  }
+
+  :root[class~="dark"] {
+    --selection-color: #bfae99; /* eaede5 */
+  }
+
+  ::selection {
+    background-color: var(--selection-color);
+  }
+
+  *::selection {
+    background-color: var(--selection-color);
+  }
+}
+
