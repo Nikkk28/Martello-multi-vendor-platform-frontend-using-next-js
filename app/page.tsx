@@ -1,3 +1,7 @@
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -9,8 +13,31 @@ import FeaturedProducts from "@/components/home/featured-products"
 import VendorSpotlight from "@/components/home/vendor-spotlight"
 import CategoryNavigation from "@/components/home/category-navigation"
 import Newsletter from "@/components/home/newsletter"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function HomePage() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+
+  // Redirect vendors to vendor dashboard
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user?.role === "VENDOR") {
+      router.push("/vendor/dashboard")
+    }
+  }, [isLoading, isAuthenticated, user, router])
+
+  // If loading or is a vendor, show minimal content
+  if (isLoading || (isAuthenticated && user?.role === "VENDOR")) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <Skeleton className="mx-auto h-12 w-12 rounded-full" />
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <main className="flex flex-col min-h-screen">
       {/* Hero Section */}

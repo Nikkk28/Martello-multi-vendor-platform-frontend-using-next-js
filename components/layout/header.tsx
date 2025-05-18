@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import CartDrawer from "@/components/cart/cart-drawer"
-import { useAuth } from "@/providers/auth-provider"
-import { useMobile } from "@/hooks/use-mobile"
+import { useAuth } from "@/hooks/use-auth"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { LogoutButton } from "@/components/auth/logout-button"
 
 const mainNavItems = [
@@ -34,8 +34,11 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const pathname = usePathname()
-  const isMobile = useMobile()
+  const isMobile = useIsMobile()
   const { user, isAuthenticated } = useAuth()
+
+  // Check if user is a vendor
+  const isVendor = isAuthenticated && user?.role === "VENDOR"
 
   // Handle scroll effect
   useEffect(() => {
@@ -53,6 +56,11 @@ export default function Header() {
   }, [])
 
   if (!isMounted) {
+    return null
+  }
+
+  // Don't render the customer header for vendor users
+  if (isVendor && pathname.startsWith("/vendor")) {
     return null
   }
 
@@ -74,64 +82,89 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                 <nav className="flex flex-col gap-4 mt-8">
-                  {mainNavItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`text-lg font-medium transition-colors hover:text-primary ${
-                        pathname === item.href ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      {item.label}
+                  {/* Only show customer navigation items if not a vendor */}
+                  {!isVendor &&
+                    mainNavItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`text-lg font-medium transition-colors hover:text-primary ${
+                          pathname === item.href ? "text-primary" : "text-foreground"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+
+                  {/* Show vendor dashboard link if user is a vendor */}
+                  {isVendor && (
+                    <Link href="/vendor/dashboard" className="text-lg font-medium transition-colors hover:text-primary">
+                      Vendor Dashboard
                     </Link>
-                  ))}
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
           )}
 
-          <Link href="/" className="font-heading text-xl">
+          <Link href={isVendor ? "/vendor/dashboard" : "/"} className="font-heading text-xl">
             Martello
           </Link>
 
           {!isMobile && (
             <nav className="flex items-center gap-6">
-              {mainNavItems.map((item) => (
+              {/* Only show customer navigation items if not a vendor */}
+              {!isVendor &&
+                mainNavItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 ${
+                      pathname === item.href ? "text-primary after:scale-x-100" : "text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+
+              {/* Show vendor dashboard link if user is a vendor */}
+              {isVendor && (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 ${
-                    pathname === item.href ? "text-primary after:scale-x-100" : "text-foreground"
-                  }`}
+                  href="/vendor/dashboard"
+                  className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
                 >
-                  {item.label}
+                  Vendor Dashboard
                 </Link>
-              ))}
+              )}
             </nav>
           )}
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex relative w-full max-w-sm items-center">
-            <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search products..."
-              className="w-full rounded-full bg-background pl-8 md:w-[200px] lg:w-[300px]"
-            />
-          </div>
+          {/* Only show search for non-vendors */}
+          {!isVendor && (
+            <div className="hidden md:flex relative w-full max-w-sm items-center">
+              <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search products..."
+                className="w-full rounded-full bg-background pl-8 md:w-[200px] lg:w-[300px]"
+              />
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            {isMobile && (
+            {isMobile && !isVendor && (
               <Button variant="outline" size="icon">
                 <Search className="h-5 w-5" />
                 <span className="sr-only">Search</span>
               </Button>
             )}
 
-            <CartDrawer />
+            {/* Only show cart for non-vendors */}
+            {!isVendor && <CartDrawer />}
 
             {isAuthenticated && user ? (
               <DropdownMenu>
@@ -146,20 +179,26 @@ export default function Header() {
                     {user.firstName} {user.lastName}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/orders">Orders</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/account/wishlist">Wishlist</Link>
-                  </DropdownMenuItem>
-                  {user.role === "VENDOR" && (
+
+                  {/* Show different menu items based on role */}
+                  {isVendor ? (
                     <DropdownMenuItem asChild>
                       <Link href="/vendor/dashboard">Vendor Dashboard</Link>
                     </DropdownMenuItem>
+                  ) : (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/account/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/account/orders">Orders</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/account/wishlist">Wishlist</Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
+
                   <DropdownMenuSeparator />
                   <LogoutButton variant="ghost" className="w-full justify-start" showIcon />
                 </DropdownMenuContent>

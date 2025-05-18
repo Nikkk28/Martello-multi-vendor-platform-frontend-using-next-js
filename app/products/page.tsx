@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 
-export default function CheckoutPage() {
+export default function ProductsPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
 
@@ -27,6 +27,11 @@ export default function CheckoutPage() {
     )
   }
 
-  // Your existing checkout page content
-  return <div className="container max-w-6xl py-8">{/* Rest of your checkout page content */}</div>
+  // Your existing products page content
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Products</h1>
+      {/* Rest of your products page content */}
+    </div>
+  )
 }

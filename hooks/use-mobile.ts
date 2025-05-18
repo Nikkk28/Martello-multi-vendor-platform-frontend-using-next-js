@@ -1,13 +1,15 @@
-"use client"
+"\"use client"
 
 import { useState, useEffect } from "react"
 
-export function useMobile() {
+const MOBILE_BREAKPOINT = 768
+
+export function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768) // Adjust breakpoint as needed
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
 
     // Set initial value

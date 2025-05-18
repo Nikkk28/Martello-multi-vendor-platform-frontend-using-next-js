@@ -4,6 +4,7 @@ export interface VendorDashboardData {
   topProducts: TopProduct[]
   weeklySalesTrend: WeeklySalesTrend[]
 }
+export type VendorStatus = "ACTIVE" | "PENDING" | "REJECTED"
 
 export interface TopProduct {
   id: number

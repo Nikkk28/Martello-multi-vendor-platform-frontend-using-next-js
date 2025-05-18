@@ -29,13 +29,18 @@ export interface Category {
 }
 
 export async function getCategories(): Promise<Category[]> {
-  try {
-    const response = await apiClient("/categories")
-    return response.data || []
-  } catch (error) {
-    console.error("Failed to fetch categories:", error)
-    return []
-  }
+  // In a real app, this would fetch categories from the API
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        { id: 1, name: "Clothing" },
+        { id: 2, name: "Accessories" },
+        { id: 3, name: "Home Decor" },
+        { id: 4, name: "Food & Beverage" },
+        { id: 5, name: "Electronics" },
+      ])
+    }, 500)
+  })
 }
 
 export async function addProduct(product: ProductRequest): Promise<any> {
@@ -49,4 +54,29 @@ export async function addProduct(product: ProductRequest): Promise<any> {
     console.error("Failed to add product:", error)
     throw error
   }
+}
+
+export async function updateVendorProfile(profileData: any) {
+  // In a real app, this would make an API call to update the vendor profile
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      console.log("Updating vendor profile:", profileData)
+      resolve({ success: true })
+    }, 1000)
+  })
+}
+
+export async function updateVendorPassword(passwordData: { currentPassword: string; newPassword: string }) {
+  // In a real app, this would make an API call to update the vendor password
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // Simulate validation
+      if (passwordData.currentPassword === "wrongpassword") {
+        reject(new Error("Current password is incorrect"))
+      } else {
+        console.log("Updating vendor password")
+        resolve({ success: true })
+      }
+    }, 1000)
+  })
 }

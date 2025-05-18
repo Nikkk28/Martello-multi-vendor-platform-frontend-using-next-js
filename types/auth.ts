@@ -1,4 +1,5 @@
 export type Role = "CUSTOMER" | "VENDOR" | "ADMIN"
+import type { VendorStatus } from "@/types/vendor"
 
 export interface LoginRequest {
   email: string
@@ -53,4 +54,12 @@ export interface UserData {
   firstName: string
   lastName: string
   role: Role
+  avatarUrl?: string
+  vendorProfile?: {
+    businessName: string
+    businessDescription: string
+    contactPhone: string
+    status: VendorStatus
+    rejectionReason?: string
+  }
 }

@@ -6,6 +6,7 @@ import { DashboardCard } from "@/components/vendor/dashboard-card"
 import { TopProductsTable } from "@/components/vendor/top-products-table"
 import { SalesChart } from "@/components/vendor/sales-chart"
 import { AddProductDrawer } from "@/components/vendor/add-product-drawer"
+import { VendorStatusBanner } from "@/components/vendor/vendor-status-banner"
 import { Toaster } from "@/components/ui/toaster"
 import { formatCurrency } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
@@ -16,11 +17,12 @@ import type { VendorDashboardData } from "@/types/vendor"
 export default function VendorDashboardPage() {
   const [dashboardData, setDashboardData] = useState<VendorDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is authenticated and is a vendor
+    // Redirect if not logged in or not a vendor
     if (!isAuthenticated) {
       router.push("/auth/login")
       return
@@ -31,18 +33,19 @@ export default function VendorDashboardPage() {
       return
     }
 
-    async function fetchDashboardData() {
+    // Fetch vendor dashboard data
+    async function fetchData() {
       try {
         const data = await getVendorDashboardData()
         setDashboardData(data)
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error)
+      } catch (err) {
+        console.error("Failed to load vendor dashboard:", err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchDashboardData()
+    fetchData()
   }, [isAuthenticated, user, router])
 
   if (loading) {
@@ -80,16 +83,23 @@ export default function VendorDashboardPage() {
         </div>
       </div>
 
+      {/* Vendor Status Banner */}
+      {user?.vendorProfile?.status && (
+        <VendorStatusBanner status={user.vendorProfile.status} rejectionReason={user.vendorProfile.rejectionReason} />
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <DashboardCard
           title="Total Earnings"
           value={formatCurrency(dashboardData.totalEarnings)}
           icon={<IndianRupee className="h-4 w-4" />}
+          className="transition-transform hover:scale-[1.02]"
         />
         <DashboardCard
           title="Pending Orders"
           value={dashboardData.pendingOrders}
           icon={<Package className="h-4 w-4" />}
+          className="transition-transform hover:scale-[1.02]"
         />
       </div>
 
