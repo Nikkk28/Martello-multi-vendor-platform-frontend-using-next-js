@@ -6,8 +6,8 @@ import Footer from "./footer"
 export function FooterWrapper() {
   const pathname = usePathname()
 
-  // Don't render footer on vendor routes
-  if (pathname?.startsWith("/vendor")) {
+  // Don't render footer on vendor or admin routes
+  if (pathname?.startsWith("/vendor") || pathname?.startsWith("/admin")) {
     return null
   }
 

@@ -37,8 +37,9 @@ export default function Header() {
   const isMobile = useIsMobile()
   const { user, isAuthenticated } = useAuth()
 
-  // Check if user is a vendor
+  // Check if user is a vendor or admin
   const isVendor = isAuthenticated && user?.role === "VENDOR"
+  const isAdmin = isAuthenticated && user?.role === "ADMIN"
 
   // Handle scroll effect
   useEffect(() => {
@@ -59,8 +60,8 @@ export default function Header() {
     return null
   }
 
-  // Don't render the customer header for vendor users
-  if (isVendor && pathname.startsWith("/vendor")) {
+  // Don't render the customer header for vendor or admin users in their respective sections
+  if ((isVendor && pathname.startsWith("/vendor")) || (isAdmin && pathname.startsWith("/admin"))) {
     return null
   }
 
@@ -82,8 +83,9 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                 <nav className="flex flex-col gap-4 mt-8">
-                  {/* Only show customer navigation items if not a vendor */}
+                  {/* Only show customer navigation items if not a vendor or admin */}
                   {!isVendor &&
+                    !isAdmin &&
                     mainNavItems.map((item) => (
                       <Link
                         key={item.href}
@@ -102,19 +104,30 @@ export default function Header() {
                       Vendor Dashboard
                     </Link>
                   )}
+
+                  {/* Show admin dashboard link if user is an admin */}
+                  {isAdmin && (
+                    <Link href="/admin/dashboard" className="text-lg font-medium transition-colors hover:text-primary">
+                      Admin Dashboard
+                    </Link>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
           )}
 
-          <Link href={isVendor ? "/vendor/dashboard" : "/"} className="font-heading text-xl">
+          <Link
+            href={isAdmin ? "/admin/dashboard" : isVendor ? "/vendor/dashboard" : "/"}
+            className="font-heading text-xl"
+          >
             Martello
           </Link>
 
           {!isMobile && (
             <nav className="flex items-center gap-6">
-              {/* Only show customer navigation items if not a vendor */}
+              {/* Only show customer navigation items if not a vendor or admin */}
               {!isVendor &&
+                !isAdmin &&
                 mainNavItems.map((item) => (
                   <Link
                     key={item.href}
@@ -136,13 +149,23 @@ export default function Header() {
                   Vendor Dashboard
                 </Link>
               )}
+
+              {/* Show admin dashboard link if user is an admin */}
+              {isAdmin && (
+                <Link
+                  href="/admin/dashboard"
+                  className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
             </nav>
           )}
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Only show search for non-vendors */}
-          {!isVendor && (
+          {/* Only show search for non-vendors and non-admins */}
+          {!isVendor && !isAdmin && (
             <div className="hidden md:flex relative w-full max-w-sm items-center">
               <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -156,15 +179,15 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            {isMobile && !isVendor && (
+            {isMobile && !isVendor && !isAdmin && (
               <Button variant="outline" size="icon">
                 <Search className="h-5 w-5" />
                 <span className="sr-only">Search</span>
               </Button>
             )}
 
-            {/* Only show cart for non-vendors */}
-            {!isVendor && <CartDrawer />}
+            {/* Only show cart for non-vendors and non-admins */}
+            {!isVendor && !isAdmin && <CartDrawer />}
 
             {isAuthenticated && user ? (
               <DropdownMenu>
@@ -181,7 +204,11 @@ export default function Header() {
                   <DropdownMenuSeparator />
 
                   {/* Show different menu items based on role */}
-                  {isVendor ? (
+                  {isAdmin ? (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/dashboard">Admin Dashboard</Link>
+                    </DropdownMenuItem>
+                  ) : isVendor ? (
                     <DropdownMenuItem asChild>
                       <Link href="/vendor/dashboard">Vendor Dashboard</Link>
                     </DropdownMenuItem>

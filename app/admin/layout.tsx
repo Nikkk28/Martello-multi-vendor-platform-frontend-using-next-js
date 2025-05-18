@@ -1,0 +1,38 @@
+"use client"
+
+import type React from "react"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+
+import { useAuth } from "@/hooks/use-auth"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    // Redirect if not admin
+    if (!isLoading && (!isAuthenticated || user?.role !== "ADMIN")) {
+      router.push("/auth/login")
+    }
+  }, [isAuthenticated, isLoading, router, user?.role])
+
+  // Don't render anything while checking authentication
+  if (isLoading || !isAuthenticated || user?.role !== "ADMIN") {
+    return null
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen flex-col">
+        <div className="flex flex-1">
+          <AdminSidebar />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
+      </div>
+    </SidebarProvider>
+  )
+}

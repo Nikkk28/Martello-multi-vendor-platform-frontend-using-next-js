@@ -132,7 +132,7 @@ body {
   }
 
   :root[class~="dark"] {
-    --selection-color: #bfae99; /* eaede5 */
+    --selection-color: #f6bf77; /* eaede5 */
   }
 
   ::selection {
