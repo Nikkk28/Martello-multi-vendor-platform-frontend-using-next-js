@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, isLoading } = useAuth()
@@ -31,6 +32,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex flex-1">
           <AdminSidebar />
           <main className="flex-1 p-6">{children}</main>
+          <div className="absolute top-4 right-4">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </SidebarProvider>
