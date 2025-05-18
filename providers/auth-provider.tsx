@@ -98,7 +98,7 @@ setIsAuthenticated(true)
   const register = async (data: RegisterRequest) => {
     setIsLoading(true)
     try {
-      const { accessToken, refreshToken, userData } = await loginApi(data)
+      const { accessToken, refreshToken, userData } = await registerApi(data)
 
 // ✅ Normalize FIRST
 userData.role = userData.role.replace("ROLE_", "") as Role
