@@ -1,6 +1,7 @@
 import { apiClient } from "./api-client"
 import type { VendorDashboardData } from "@/types/vendor"
 import type { ProductRequest } from "@/types/product"
+import type { OrderResponse } from "@/types/order"
 
 // Mock data for development
 const mockDashboardData: VendorDashboardData = {
@@ -80,3 +81,25 @@ export async function updateVendorPassword(passwordData: { currentPassword: stri
     }, 1000)
   })
 }
+export async function getVendorOrders(): Promise<OrderResponse[]> {
+  try {
+    const response = await apiClient("/vendor/orders", {
+      method: "GET",
+    })
+    return response
+  } catch (error) {
+    console.error("Failed to fetch vendor orders:", error)
+    return []
+  }
+}
+export async function markOrderAsShipped(orderId: number): Promise<void> {
+  try {
+    await apiClient(`/vendor/orders/${orderId}/ship`, {
+      method: "PATCH",
+    })
+  } catch (error) {
+    console.error("Failed to mark order as shipped:", error)
+    throw error
+  }
+}
+

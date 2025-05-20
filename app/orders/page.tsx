@@ -1,4 +1,4 @@
-import { getVendorOrders } from "@/lib/api/vendor"
+import { getOrders } from "@/lib/api/orders"
 import type { OrderResponse } from "@/types/order"
 import Link from "next/link"
 import { format } from "date-fns"
@@ -13,27 +13,27 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 
-export default async function VendorOrdersPage() {
+export default async function OrdersPage() {
   let orders: OrderResponse[] = []
 
   try {
-    orders = await getVendorOrders()
+    orders = await getOrders()
   } catch (error) {
-    console.error("Failed to fetch vendor orders:", error)
+    console.error("Failed to fetch orders:", error)
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
-      <h1 className="text-2xl font-semibold mb-6">Vendor Orders</h1>
+    <div className="max-w-5xl mx-auto py-10 px-4">
+      <h1 className="text-2xl font-semibold mb-6">Your Orders</h1>
 
       {orders.length === 0 ? (
-        <p className="text-muted-foreground">No orders have been placed for your products yet.</p>
+        <p className="text-muted-foreground">You have no orders yet.</p>
       ) : (
-        <div className="border rounded-lg overflow-x-auto">
+        <div className="rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">Order #</TableHead>
+                <TableHead className="w-[80px]">ID</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Total</TableHead>
@@ -51,7 +51,7 @@ export default async function VendorOrdersPage() {
                   <TableCell>${order.total.toFixed(2)}</TableCell>
                   <TableCell className="text-right">
                     <Link
-                      href={`/vendor/orders/${order.id}`}
+                      href={`/orders/${order.id}`}
                       className="text-primary hover:underline"
                     >
                       View
