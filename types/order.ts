@@ -11,7 +11,8 @@ export interface OrderRequest {
   billingAddress?: string
 }
 
-// Response structure for an item inside an order
+export type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED'
+
 export interface OrderItemResponse {
   id: number
   productId: number
@@ -22,13 +23,15 @@ export interface OrderItemResponse {
   imageUrl?: string
 }
 
-// Full order response from the backend
 export interface OrderResponse {
   id: number
-  userId: number
+  customerId: number      // renamed from userId
+  customerName?: string
+  vendorId?: number       // added for vendor-specific views
+  vendorName?: string     // added for vendor display
   createdAt: string
   updatedAt: string
-  status: string
+  status: OrderStatus
   total: number
   shippingAddress?: string
   billingAddress?: string

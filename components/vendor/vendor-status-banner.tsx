@@ -1,51 +1,46 @@
-import type { VendorStatus } from "@/types/vendor"
-import { AlertCircle, CheckCircle, Clock } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { cn } from "@/lib/utils"
+"use client"
+
+import React from "react"
 
 interface VendorStatusBannerProps {
-  status: VendorStatus
-  rejectionReason?: string
+  status: "PENDING" | "APPROVED" | "REJECTED"
 }
 
-export function VendorStatusBanner({ status, rejectionReason }: VendorStatusBannerProps) {
-  const statusConfig = {
-    ACTIVE: {
-      icon: CheckCircle,
-      title: "Account Approved",
-      description: "Your vendor account is approved and active. You can now add products and manage orders.",
-      variant: "default" as const,
-      className: "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900",
-      iconClassName: "text-green-500",
-    },
-    PENDING: {
-      icon: Clock,
-      title: "Account Pending Approval",
-      description: "Your vendor account is currently under review. You'll be notified once it's approved.",
-      variant: "default" as const,
-      className: "bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-900",
-      iconClassName: "text-yellow-500",
-    },
-    REJECTED: {
-      icon: AlertCircle,
-      title: "Account Rejected",
-      description:
-        rejectionReason ||
-        "Your vendor account application has been rejected. Please contact support for more information.",
-      variant: "destructive" as const,
-      className: "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900",
-      iconClassName: "text-red-500",
-    },
-  }
-
-  const config = statusConfig[status]
-  const Icon = config.icon
+export function VendorStatusBanner({ status }: VendorStatusBannerProps) {
+  const { bgColor, textColor, message } = getStatusStyles(status)
 
   return (
-    <Alert variant={config.variant} className={cn("mb-6 transition-all animate-fadeIn", config.className)}>
-      <Icon className={cn("h-5 w-5", config.iconClassName)} />
-      <AlertTitle className="ml-2">{config.title}</AlertTitle>
-      <AlertDescription className="ml-2">{config.description}</AlertDescription>
-    </Alert>
+    <div className={`rounded-md px-4 py-3 text-sm font-medium ${bgColor} ${textColor}`}>
+      {message}
+    </div>
   )
+}
+
+function getStatusStyles(status: VendorStatusBannerProps["status"]) {
+  switch (status) {
+    case "APPROVED":
+      return {
+        bgColor: "bg-green-100",
+        textColor: "text-green-800",
+        message: "✅ Your vendor account is approved and fully active.",
+      }
+    case "PENDING":
+      return {
+        bgColor: "bg-yellow-100",
+        textColor: "text-yellow-800",
+        message: "⏳ Your vendor account is pending admin approval.",
+      }
+    case "REJECTED":
+      return {
+        bgColor: "bg-red-100",
+        textColor: "text-red-800",
+        message: "❌ Your vendor account was rejected. Please contact support.",
+      }
+    default:
+      return {
+        bgColor: "bg-gray-100",
+        textColor: "text-gray-800",
+        message: "Unknown vendor status.",
+      }
+  }
 }

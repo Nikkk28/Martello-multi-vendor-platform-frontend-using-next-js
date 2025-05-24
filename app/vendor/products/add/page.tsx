@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Loader2, ArrowLeft } from "lucide-react"
+import { Loader2, ArrowLeft, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { addProduct, getCategories, type Category } from "@/lib/api/vendor"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name must be at least 3 characters"),
@@ -24,15 +25,40 @@ const productSchema = z.object({
   stock: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
     message: "Stock must be a non-negative number",
   }),
-  category: z.string().min(1, "Please select a category"),
+  categoryId: z.string().min(1, "Please select a category"),
+  sku: z.string().optional(),
+  weight: z.string().optional(),
+  dimensions: z.string().optional(),
 })
 
 type ProductFormValues = z.infer<typeof productSchema>
 
 export default function AddProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories()
+        setCategories(data)
+      } catch (error) {
+        console.error("Failed to fetch categories:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load categories. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoadingCategories(false)
+      }
+    }
+
+    fetchCategories()
+  }, [toast])
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -41,7 +67,10 @@ export default function AddProductPage() {
       description: "",
       price: "",
       stock: "",
-      category: "",
+      categoryId: "",
+      sku: "",
+      weight: "",
+      dimensions: "",
     },
   })
 
@@ -49,8 +78,16 @@ export default function AddProductPage() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Convert string values to appropriate types
+      const productData = {
+        ...data,
+        price: Number.parseFloat(data.price),
+        stock: Number.parseInt(data.stock),
+        categoryId: Number.parseInt(data.categoryId),
+        imageUrls: [], // Placeholder for image URLs
+      }
+
+      await addProduct(productData)
 
       toast({
         title: "Product created",
@@ -83,7 +120,9 @@ export default function AddProductPage() {
           <Card>
             <CardHeader>
               <CardTitle>Product Information</CardTitle>
-              <CardDescription>Enter the details of your new product. All fields are required.</CardDescription>
+              <CardDescription>
+                Enter the details of your new product. All fields marked with * are required.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -93,7 +132,7 @@ export default function AddProductPage() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Name</FormLabel>
+                        <FormLabel>Product Name *</FormLabel>
                         <FormControl>
                           <Input placeholder="Premium Leather Wallet" {...field} />
                         </FormControl>
@@ -108,7 +147,7 @@ export default function AddProductPage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Description *</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Describe your product in detail..."
@@ -128,7 +167,7 @@ export default function AddProductPage() {
                       name="price"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Price ($)</FormLabel>
+                          <FormLabel>Price (₹) *</FormLabel>
                           <FormControl>
                             <Input type="number" step="0.01" min="0" placeholder="99.99" {...field} />
                           </FormControl>
@@ -142,7 +181,7 @@ export default function AddProductPage() {
                       name="stock"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Stock Quantity</FormLabel>
+                          <FormLabel>Stock Quantity *</FormLabel>
                           <FormControl>
                             <Input type="number" min="0" placeholder="10" {...field} />
                           </FormControl>
@@ -154,22 +193,28 @@ export default function AddProductPage() {
 
                   <FormField
                     control={form.control}
-                    name="category"
+                    name="categoryId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel>Category *</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          disabled={isLoadingCategories}
+                        >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
+                              <SelectValue
+                                placeholder={isLoadingCategories ? "Loading categories..." : "Select a category"}
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="accessories">Accessories</SelectItem>
-                            <SelectItem value="clothing">Clothing</SelectItem>
-                            <SelectItem value="home">Home & Living</SelectItem>
-                            <SelectItem value="jewelry">Jewelry</SelectItem>
-                            <SelectItem value="art">Art & Collectibles</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -177,7 +222,64 @@ export default function AddProductPage() {
                     )}
                   />
 
-                  <Button type="submit" className="w-full premium-button" disabled={isSubmitting}>
+                  <FormField
+                    control={form.control}
+                    name="sku"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SKU (Stock Keeping Unit)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="SKU-12345" {...field} />
+                        </FormControl>
+                        <FormDescription>A unique identifier for your product (optional).</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="weight"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weight (kg)</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" min="0" placeholder="0.5" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="dimensions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dimensions (L x W x H cm)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="10 x 5 x 2" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="border border-dashed rounded-lg p-6 text-center">
+                    <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-sm font-medium mb-1">Drag and drop product images here</p>
+                    <p className="text-xs text-muted-foreground mb-4">PNG, JPG or WEBP up to 5MB</p>
+                    <Button type="button" variant="outline" size="sm">
+                      Select Files
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-4">
+                      Image upload functionality will be available soon
+                    </p>
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

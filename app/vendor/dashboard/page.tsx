@@ -11,8 +11,9 @@ import { Toaster } from "@/components/ui/toaster"
 import { formatCurrency } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
-import { IndianRupee, Package } from "lucide-react"
+import { IndianRupee, Package, ShoppingBag, BarChart3 } from "lucide-react"
 import type { VendorDashboardData } from "@/types/vendor"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function VendorDashboardPage() {
   const [dashboardData, setDashboardData] = useState<VendorDashboardData | null>(null)
@@ -22,7 +23,6 @@ export default function VendorDashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect if not logged in or not a vendor
     if (!isAuthenticated) {
       router.push("/auth/login")
       return
@@ -33,7 +33,6 @@ export default function VendorDashboardPage() {
       return
     }
 
-    // Fetch vendor dashboard data
     async function fetchData() {
       try {
         const data = await getVendorDashboardData()
@@ -51,11 +50,21 @@ export default function VendorDashboardPage() {
   if (loading) {
     return (
       <div className="container mx-auto py-10">
-        <div className="flex h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
-          </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-10 w-32 mt-4 sm:mt-0" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-[400px] w-full" />
         </div>
       </div>
     )
@@ -83,9 +92,9 @@ export default function VendorDashboardPage() {
         </div>
       </div>
 
-      {/* Vendor Status Banner */}
-      {user?.vendorProfile?.status && (
-        <VendorStatusBanner status={user.vendorProfile.status} rejectionReason={user.vendorProfile.rejectionReason} />
+      {/* ✅ Vendor Status Banner using backend value */}
+      {dashboardData.status && (
+        <VendorStatusBanner status={dashboardData.status} />
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -101,9 +110,21 @@ export default function VendorDashboardPage() {
           icon={<Package className="h-4 w-4" />}
           className="transition-transform hover:scale-[1.02]"
         />
+        <DashboardCard
+          title="Total Products"
+          value={dashboardData.totalProducts || 0}
+          icon={<ShoppingBag className="h-4 w-4" />}
+          className="transition-transform hover:scale-[1.02]"
+        />
+        <DashboardCard
+          title="Total Orders"
+          value={dashboardData.totalOrders || 0}
+          icon={<BarChart3 className="h-4 w-4" />}
+          className="transition-transform hover:scale-[1.02]"
+        />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <TopProductsTable products={dashboardData.topProducts} />
         <SalesChart data={dashboardData.weeklySalesTrend} />
       </div>

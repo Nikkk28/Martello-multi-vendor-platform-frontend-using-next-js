@@ -5,13 +5,14 @@ import type React from "react"
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Heart, ShoppingCart } from "lucide-react"
+import { ShoppingCart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
 import type { ProductResponse } from "@/types/product"
+import WishlistButton from "@/components/products/wishlist-button"
 
 interface ProductCardProps {
   product: ProductResponse
@@ -35,16 +36,6 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
     toast({
       title: "Added to cart",
       description: `${product.name} has been added to your cart`,
-    })
-  }
-
-  const handleAddToWishlist = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    toast({
-      title: "Added to wishlist",
-      description: `${product.name} has been added to your wishlist`,
     })
   }
 
@@ -74,14 +65,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
               <ShoppingCart className="h-4 w-4 mr-2" />
               Add to Cart
             </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="rounded-full premium-button"
-              onClick={handleAddToWishlist}
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
+            <WishlistButton product={product} />
           </div>
         </div>
 

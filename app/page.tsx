@@ -9,7 +9,6 @@ import { ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import FeaturedProducts from "@/components/home/featured-products"
 import VendorSpotlight from "@/components/home/vendor-spotlight"
 import CategoryNavigation from "@/components/home/category-navigation"
 import Newsletter from "@/components/home/newsletter"
@@ -19,14 +18,12 @@ export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
 
-  // Redirect vendors to vendor dashboard
   useEffect(() => {
     if (!isLoading && isAuthenticated && user?.role === "VENDOR") {
       router.push("/vendor/dashboard")
     }
   }, [isLoading, isAuthenticated, user, router])
 
-  // If loading or is a vendor, show minimal content
   if (isLoading || (isAuthenticated && user?.role === "VENDOR")) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -80,7 +77,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Featured Products (Hardcoded) */}
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
@@ -92,9 +89,51 @@ export default function HomePage() {
               </Link>
             </Button>
           </div>
-          <Suspense fallback={<FeaturedProductsSkeleton />}>
-            <FeaturedProducts />
-          </Suspense>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[
+              {
+                id: 1,
+                name: "Wireless Headphones",
+                price: 1999,
+                image: "https://via.placeholder.com/400x300?text=Headphones",
+              },
+              {
+                id: 2,
+                name: "Smartwatch Pro",
+                price: 19999,
+                image: "https://via.placeholder.com/400x300?text=Smartwatch",
+              },
+              {
+                id: 3,
+                name: "Leather Backpack",
+                price: 24999,
+                image: "https://via.placeholder.com/400x300?text=Backpack",
+              },
+              {
+                id: 4,
+                name: "Fitness Tracker",
+                price: 9900,
+                image: "https://via.placeholder.com/400x300?text=Fitness+Tracker",
+              },
+            ].map((product) => (
+              <div key={product.id} className="transition-transform hover:scale-[1.02]">
+                <div className="rounded-lg overflow-hidden shadow bg-background">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-60 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold mb-1">{product.name}</h3>
+                    <p className="text-primary font-bold text-base">
+                      ₹{product.price.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -115,22 +154,6 @@ export default function HomePage() {
         </div>
       </section>
     </main>
-  )
-}
-
-function FeaturedProductsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {Array(4)
-        .fill(0)
-        .map((_, i) => (
-          <div key={i} className="space-y-3">
-            <Skeleton className="h-[300px] w-full rounded-lg" />
-            <Skeleton className="h-6 w-2/3" />
-            <Skeleton className="h-4 w-1/3" />
-          </div>
-        ))}
-    </div>
   )
 }
 

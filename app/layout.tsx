@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/providers/auth-provider"
 import { CartProvider } from "@/providers/cart-provider"
-import { QueryProvider } from "@/providers/query-provider"
+import ReactQueryProvider from "@/providers/query-provider"
 import Header from "@/components/layout/header"
 import { PageTransition } from "@/components/ui/page-transition"
 import { ScrollToTop } from "@/components/ui/scroll-to-top"
@@ -30,7 +30,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background antialiased", inter.className)}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          <QueryProvider>
+          <ReactQueryProvider>
             <AuthProvider>
               <CartProvider>
                 <div className="flex min-h-screen flex-col">
@@ -38,14 +38,13 @@ export default function RootLayout({
                   <main className="flex-1">
                     <PageTransition>{children}</PageTransition>
                   </main>
-                  {/* Footer is now conditionally rendered in the client component FooterWrapper */}
                   <FooterWrapper />
                 </div>
                 <ScrollToTop />
                 <Toaster />
               </CartProvider>
             </AuthProvider>
-          </QueryProvider>
+          </ReactQueryProvider>
         </ThemeProvider>
       </body>
     </html>

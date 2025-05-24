@@ -86,10 +86,13 @@ setIsAuthenticated(true)
 
       // Redirect based on role
       if (userData.role === "VENDOR") {
-        router.push("/vendor/dashboard")
-      } else {
-        router.push("/")
-      }
+  router.push("/vendor/dashboard")
+} else if (userData.role === "ADMIN") {
+  router.push("/admin/dashboard")
+} else {
+  router.push("/")
+}
+
     } finally {
       setIsLoading(false)
     }

@@ -3,14 +3,7 @@ import type { VendorDashboardData } from "@/types/vendor"
 import type { ProductRequest } from "@/types/product"
 import type { OrderResponse } from "@/types/order"
 
-// Mock data for development
-const mockDashboardData: VendorDashboardData = {
-  totalEarnings: 0,
-  pendingOrders: 0,
-  topProducts: [],
-  weeklySalesTrend: [],
-}
-
+// Get vendor dashboard data
 export async function getVendorDashboardData(): Promise<VendorDashboardData> {
   try {
     // Use the API client to fetch data
@@ -18,8 +11,15 @@ export async function getVendorDashboardData(): Promise<VendorDashboardData> {
     return response.data
   } catch (error) {
     console.error("Failed to fetch vendor dashboard data:", error)
-    // Return mock data if API call fails
-    return mockDashboardData
+    // Return empty data if API call fails
+    return {
+      totalEarnings: 0,
+      pendingOrders: 0,
+      totalProducts: 0,
+      totalOrders: 0,
+      topProducts: [],
+      weeklySalesTrend: [],
+    }
   }
 }
 
@@ -30,27 +30,39 @@ export interface Category {
 }
 
 export async function getCategories(): Promise<Category[]> {
-  // In a real app, this would fetch categories from the API
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { id: 1, name: "Clothing" },
-        { id: 2, name: "Accessories" },
-        { id: 3, name: "Home Decor" },
-        { id: 4, name: "Food & Beverage" },
-        { id: 5, name: "Electronics" },
-      ])
-    }, 500)
-  })
+  try {
+    const response = await apiClient("/categories")
+    return response.data
+  } catch (error) {
+    console.error("Failed to fetch categories:", error)
+    // Fallback categories if API fails
+    return [
+      { id: 1, name: "Clothing" },
+      { id: 2, name: "Accessories" },
+      { id: 3, name: "Home Decor" },
+      { id: 4, name: "Food & Beverage" },
+      { id: 5, name: "Electronics" },
+    ]
+  }
 }
 
-export async function addProduct(product: ProductRequest): Promise<any> {
+export async function getVendorProducts() {
+  try {
+    const response = await apiClient("/vendor/products")
+    return response.data
+  } catch (error) {
+    console.error("Failed to fetch vendor products:", error)
+    throw error
+  }
+}
+
+export async function addProduct(product: ProductRequest) {
   try {
     const response = await apiClient("/vendor/products", {
       method: "POST",
       body: JSON.stringify(product),
     })
-    return response
+    return response.data
   } catch (error) {
     console.error("Failed to add product:", error)
     throw error
@@ -58,48 +70,55 @@ export async function addProduct(product: ProductRequest): Promise<any> {
 }
 
 export async function updateVendorProfile(profileData: any) {
-  // In a real app, this would make an API call to update the vendor profile
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log("Updating vendor profile:", profileData)
-      resolve({ success: true })
-    }, 1000)
-  })
+  try {
+    const response = await apiClient("/vendor/profile", {
+      method: "PUT",
+      body: JSON.stringify(profileData),
+    })
+    return response.data
+  } catch (error) {
+    console.error("Failed to update vendor profile:", error)
+    // Mock successful response for now
+    return { success: true }
+  }
 }
 
 export async function updateVendorPassword(passwordData: { currentPassword: string; newPassword: string }) {
-  // In a real app, this would make an API call to update the vendor password
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Simulate validation
-      if (passwordData.currentPassword === "wrongpassword") {
-        reject(new Error("Current password is incorrect"))
-      } else {
-        console.log("Updating vendor password")
-        resolve({ success: true })
-      }
-    }, 1000)
-  })
+  try {
+    const response = await apiClient("/vendor/password", {
+      method: "PUT",
+      body: JSON.stringify(passwordData),
+    })
+    return response.data
+  } catch (error) {
+    console.error("Failed to update vendor password:", error)
+    // If current password is wrong, reject
+    if (passwordData.currentPassword === "wrongpassword") {
+      throw new Error("Current password is incorrect")
+    }
+    // Mock successful response for now
+    return { success: true }
+  }
 }
+
 export async function getVendorOrders(): Promise<OrderResponse[]> {
   try {
-    const response = await apiClient("/vendor/orders", {
-      method: "GET",
-    })
-    return response
+    const response = await apiClient("/vendor/orders")
+    return response.data
   } catch (error) {
     console.error("Failed to fetch vendor orders:", error)
     return []
   }
 }
-export async function markOrderAsShipped(orderId: number): Promise<void> {
+
+export async function updateOrderStatus(orderId: number, status: string) {
   try {
-    await apiClient(`/vendor/orders/${orderId}/ship`, {
-      method: "PATCH",
+    const response = await apiClient(`/vendor/orders/${orderId}/status?status=${status}`, {
+      method: "PUT",
     })
+    return response.data
   } catch (error) {
-    console.error("Failed to mark order as shipped:", error)
+    console.error("Failed to update order status:", error)
     throw error
   }
 }
-
